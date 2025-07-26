@@ -1,6 +1,5 @@
 const Product = require('../models/Product');
 
-// GET /api/products
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
@@ -10,7 +9,6 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// POST /api/products
 exports.createProduct = async (req, res) => {
   try {
     const newProduct = await Product.create(req.body);
@@ -20,13 +18,12 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// PUT /api/products/:id
 exports.updateProduct = async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true } // вернуть обновлённый документ
+      { new: true }
     );
 
     if (!updatedProduct) {
@@ -39,7 +36,6 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// DELETE /api/products/:id
 exports.deleteProduct = async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
