@@ -4,22 +4,13 @@ const printOptionSchema = new mongoose.Schema({
   code: {
     type: String,
     required: true,
-    match: /^\d+x\d+$/ // например: 2x1
+    match: /^\d+x\d+$/ // например: 2+1
+  },
+  quantity: {
+    type: Number,
+    requried: true
   },
   price: {
-    type: Number,
-    required: true,
-    min: 0
-  }
-}, { _id: false });
-
-const bulkPricingSchema = new mongoose.Schema({
-  minQty: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  priceMultiplier: {
     type: Number,
     required: true,
     min: 0
@@ -55,10 +46,6 @@ const productSchema = new mongoose.Schema({
   },
   printOptions: {
     type: [printOptionSchema],
-    default: []
-  },
-  bulkPricing: {
-    type: [bulkPricingSchema],
     default: []
   },
   tags: {
