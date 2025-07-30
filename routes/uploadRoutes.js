@@ -30,22 +30,22 @@ router.post('/', upload.single('file'), async (req, res) => {
     try {
         const filePath = path.join(uploadDir, req.file.filename);
         const workbook = xlsx.readFile(filePath);
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = xlsx.utils.sheet_to_json(sheet);
-
-        const products = [];
+        const allProducts = [];
 
         for (const sheetName of workbook.SheetNames) {
             const worksheet = workbook.Sheets[sheetName];
             const rows = xlsx.utils.sheet_to_json(worksheet);
 
+            // Удаляем старые товары этой категории
+            await Product.deleteMany({ category: sheetName });
+
+            const categoryProducts = [];
+
             for (const row of rows) {
                 const priceArray = [];
 
                 for (const key of Object.keys(row)) {
-                    const match = key.match(/^От\s+(\d+)\s+шт$/i); // ищем "От 100 шт", "От 500 шт", ...
-
+                    const match = key.match(/^От\s+(\d+)\s+шт$/i);
                     if (match) {
                         const minQty = parseInt(match[1], 10);
                         const priceValue = Number(row[key]);
@@ -70,7 +70,7 @@ router.post('/', upload.single('file'), async (req, res) => {
                     appMethod: row['Метод нанесения']?.toString().trim() || '',
                     material: row['Материал']?.toString().trim() || '',
                     bottom: !!row['Донная складка']?.toString().trim(),
-                    handle: !!row['Усиленная ручка']?.toString().trim(), 
+                    handle: !!row['Усиленная ручка']?.toString().trim(),
                     handleColor: row['Цвет ручек']?.toString().trim() || '',
                     density: row['Плотность']?.toString().trim() || '',
                     size: row['Размер']?.toString().trim() || '',
@@ -80,19 +80,95 @@ router.post('/', upload.single('file'), async (req, res) => {
                     zipLock: !!row['Zip-замок']?.toString().trim(),
                     images: row['Изображения']?.toString().trim() || '',
 
-                    printOptions: [], // пока оставляем пустым
+                    printOptions: [],
                 });
 
-                products.push(product);
+                categoryProducts.push(product);
+            }
+
+            // Добавляем новые товары этой категории
+            if (categoryProducts.length > 0) {
+                await Product.insertMany(categoryProducts);
+                allProducts.push(...categoryProducts);
             }
         }
 
-        await Product.insertMany(products);
-
-        res.json({ success: true, added: products.length });
+        res.json({ success: true, added: allProducts.length });
     } catch (error) {
         console.error('Помилка при обробці Excel:', error);
         res.status(500).json({ error: 'Помилка при обробці файлу' });
+    }
+});
+
+router.get('/export', async (req, res) => {
+    try {
+        const products = await Product.find();
+
+        if (!products.length) {
+            return res.status(404).json({ error: 'Нет товаров для экспорта' });
+        }
+
+        const categories = {};
+
+        for (const product of products) {
+            if (!categories[product.category]) {
+                categories[product.category] = [];
+            }
+
+            const row = {
+                'Наименование': product.name || '',
+                'Валюта': product.currency || ''
+            };
+
+            for (const priceEntry of product.price || []) {
+                row[`От ${priceEntry.minQty} шт`] = priceEntry.price;
+            }
+
+            Object.assign(row, {
+                'Описание': product.description || '',
+                'Теги': product.tags || '',
+                'Тип товаров': product.type || '',
+                'Вес': product.weight || '',
+                'Цвет': product.color || '',
+                'Метод нанесения': product.appMethod || '',
+                'Материал': product.material || '',
+                'Донная складка': product.bottom ? 'Да' : '',
+                'Усиленная ручка': product.handle ? 'Да' : '',
+                'Цвет ручек': product.handleColor || '',
+                'Плотность': product.density || '',
+                'Размер': product.size || '',
+                'Карман для документов': product.docsPocket ? 'Да' : '',
+                'Липкий клапан': product.stickyAss ? 'Да' : '',
+                'Окно': product.window ? 'Да' : '',
+                'Zip-замок': product.zipLock ? 'Да' : '',
+                'Изображения': product.images || ''
+            });
+
+            categories[product.category].push(row);
+        }
+
+        const workbook = xlsx.utils.book_new();
+
+        for (const [category, rows] of Object.entries(categories)) {
+            const worksheet = xlsx.utils.json_to_sheet(rows);
+            xlsx.utils.book_append_sheet(workbook, worksheet, category);
+        }
+
+        const exportPath = path.join(__dirname, '..', 'uploads', 'products_export.xlsx'); // <-- путь с именем файла
+        xlsx.writeFile(workbook, exportPath);
+
+        res.download(exportPath, 'products_export.xlsx', err => {
+            if (err) {
+                console.error('Ошибка при отправке файла:', err);
+                res.status(500).json({ error: 'Не удалось отправить файл' });
+            } else {
+                // Удалить файл после скачивания
+                fs.unlink(exportPath, () => { });
+            }
+        });
+    } catch (err) {
+        console.error('Ошибка при экспорте:', err);
+        res.status(500).json({ error: 'Ошибка при экспорте товаров' });
     }
 });
 
