@@ -126,7 +126,7 @@ router.get('/export', async (req, res) => {
 
             Object.assign(row, {
                 'Описание': product.description || '',
-                'Теги': product.tags || '',
+                'Теги': Array.isArray(product.tags) ? product.tags.join(', ') : '',
                 'Тип товаров': product.type || '',
                 'Вес': product.weight || '',
                 'Цвет': product.color || '',
@@ -141,7 +141,7 @@ router.get('/export', async (req, res) => {
                 'Липкий клапан': product.stickyAss ? 'Да' : '',
                 'Окно': product.window ? 'Да' : '',
                 'Zip-замок': product.zipLock ? 'Да' : '',
-                'Изображения': product.images || ''
+                'Изображения': Array.isArray(product.images) ? product.images.join(', ') : ''
             });
 
             categories[product.category].push(row);

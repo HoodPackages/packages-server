@@ -80,6 +80,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+  color: {
+    type: String,
+    required: true,
+  },
   appMethod: {
     type: String,
     required: false,
