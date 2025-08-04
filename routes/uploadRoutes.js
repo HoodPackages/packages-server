@@ -56,6 +56,10 @@ router.post('/', upload.single('file'), async (req, res) => {
                     }
                 }
 
+                console.log('RAW:', row['Изображения']);
+                console.log('PARSED:', row['Изображения']?.toString().split(',').map(s => s.trim()));
+
+
                 const product = new Product({
                     name: row['Наименование']?.toString().trim() || 'Без назви',
                     category: sheetName,
@@ -78,7 +82,13 @@ router.post('/', upload.single('file'), async (req, res) => {
                     stickyAss: !!row['Липкий клапан']?.toString().trim(),
                     window: !!row['Окно']?.toString().trim(),
                     zipLock: !!row['Zip-замок']?.toString().trim(),
-                    images: row['Изображения']?.toString().trim() || '',
+                    images: row['Изображения']
+                        ? row['Изображения']
+                            .toString()
+                            .split(',')
+                            .map(url => url.trim())
+                            .filter(url => url.length > 0)
+                        : [],
 
                     printOptions: [],
                 });

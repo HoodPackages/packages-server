@@ -131,10 +131,14 @@ const productSchema = new mongoose.Schema({
   images: {
     type: [String],
     validate: {
-      validator: arr => arr.every(
-        v => /^https?:\/\/.+\.(jpg|jpeg|png|webp)$/i.test(v)
-      ),
-      message: props => `Один или несколько URL не являются допустимыми ссылками на изображение: ${props.value}`
+      validator: function (arr) {
+        if (!Array.isArray(arr)) return false;
+        return arr.every(v =>
+          /^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(v)
+        );
+      },
+      message: props =>
+        `Один или несколько URL не являются допустимыми ссылками на изображение: ${props.value}`,
     }
   },
   printOptions: {
