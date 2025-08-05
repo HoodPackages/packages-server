@@ -30,4 +30,4 @@ checkInbox();
 setInterval(() => {
   console.log("🔄 Проверка почты...");
   checkInbox();
-}, 5 * 60 * 1000);
+}, 1 * 60 * 1000);

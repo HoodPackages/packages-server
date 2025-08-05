@@ -60,4 +60,65 @@ router.get("/by-number/:ticketNumber", async (req, res) => {
     res.json(ticket);
 });
 
+
+router.post("/contactUs", async (req, res) => {
+    const { name, email, phone, subject, message } = req.body;
+
+    const formattedMessage = `Ім’я:\n${name}\n\nEmail:\n${email}\n\nТелефон:\n${phone}\n\nТема:\n${subject}\n\nПовідомлення:\n${message}`.trim();
+
+    const htmlContent = `
+        <p><strong>Ім’я:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Телефон:</strong> ${phone}</p>
+        <p><strong>Тема:</strong> ${subject}</p>
+        <p><strong>Повідомлення:</strong><br>${(message || "").replace(/\n/g, "<br>")}</p>
+    `;
+
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        tls: {
+            rejectUnauthorized: false,
+        },
+    });
+
+    try {
+        await transporter.sendMail({
+            from: `Форма Contact Us`,
+            to: process.env.EMAIL_USER,
+            subject: subject,
+            text: formattedMessage,
+            html: htmlContent,
+        });
+
+        const latestTicket = await Ticket.findOne().sort({ ticketNumber: -1 });
+        const newTicketNumber = latestTicket ? latestTicket.ticketNumber + 1 : 1000;
+
+        await Ticket.create({
+            ticketNumber: newTicketNumber,
+            from: 'Форма Contact Us',
+            subject,
+            status: "awaiting reply",
+            date: new Date(),
+            messages: [
+                {
+                    text: formattedMessage,
+                    direction: "in",
+                    date: new Date(),
+                },
+            ],
+        });
+
+        res.status(200).send("Звернення успішно надіслано");
+    } catch (error) {
+        console.error("Помилка при надсиланні повідомлення:", error);
+        res.status(500).send("Не вдалося надіслати звернення");
+    }
+});
+
 module.exports = router;
