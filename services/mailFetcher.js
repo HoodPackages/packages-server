@@ -37,11 +37,9 @@ async function checkInbox() {
       const subject = parsed.subject || "Без темы";
       const parsedText = parsed.text || parsed.html || "Без текста";
 
-      // Найти последний тикет от этого отправителя с сортировкой по ticketNumber
       const lastTicket = await Ticket.findOne({ from }).sort({ ticketNumber: -1 });
 
       if (lastTicket) {
-        // Добавить сообщение в существующий тикет
         lastTicket.messages.push({
           text: parsedText,
           direction: "in",
@@ -51,7 +49,6 @@ async function checkInbox() {
         await lastTicket.save();
         console.log(`✅ Добавлено сообщение в тикет #${lastTicket.ticketNumber} от ${from}`);
       } else {
-        // Создать новый тикет с уникальным ticketNumber
         const latestTicket = await Ticket.findOne().sort({ ticketNumber: -1 });
         const newTicketNumber = latestTicket ? latestTicket.ticketNumber + 1 : 1000;
 
