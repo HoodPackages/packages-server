@@ -54,12 +54,35 @@ router.post("/:id/reply", async (req, res) => {
     }
 });
 
-router.get("/by-number/:ticketNumber", async (req, res) => {
-    const ticket = await Ticket.findOne({ ticketNumber: req.params.ticketNumber });
-    if (!ticket) return res.status(404).send("Тикет не найден");
-    res.json(ticket);
+router.get("/:id", async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+        if (!ticket) return res.status(404).send("Тикет не найден");
+        res.json(ticket);
+    } catch (err) {
+        console.error("Ошибка при получении тикета:", err);
+        res.status(500).send("Ошибка сервера");
+    }
 });
 
+router.patch("/:id", async (req, res) => {
+    try {
+        const { subject, from, status } = req.body;
+
+        const ticket = await Ticket.findById(req.params.id);
+        if (!ticket) return res.status(404).send("Тикет не найден");
+
+        if (subject !== undefined) ticket.subject = subject;
+        if (from !== undefined) ticket.from = from;
+        if (status !== undefined) ticket.status = status;
+
+        await ticket.save();
+        res.json(ticket);
+    } catch (err) {
+        console.error("Ошибка при обновлении тикета:", err);
+        res.status(500).send("Ошибка сервера");
+    }
+});
 
 router.post("/contactUs", async (req, res) => {
     const { name, email, phone, subject, message } = req.body;
