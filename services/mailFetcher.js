@@ -10,8 +10,13 @@ const config = {
     host: process.env.IMAP_HOST,
     port: Number(process.env.IMAP_PORT),
     tls: true,
-    authTimeout: 5000,
     tlsOptions: { rejectUnauthorized: false },
+    authTimeout: 5000,
+    // keepalive: {
+    //   interval: 10000,
+    //   idleInterval: 300000,
+    //   forceNoop: true,
+    // },
   },
 };
 
@@ -68,12 +73,12 @@ async function checkInbox() {
         });
         console.log(`✅ Создан новый тикет #${newTicketNumber} от ${from}`);
       }
+
+      await connection.end();
     } catch (err) {
-      console.error("❌ Ошибка парсинга письма:", err);
+      console.error("Ошибка при проверке почты::", err);
     }
   }
-
-  await connection.end();
 }
 
 module.exports = {
