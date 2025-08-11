@@ -36,7 +36,6 @@ router.post('/', upload.single('file'), async (req, res) => {
             const worksheet = workbook.Sheets[sheetName];
             const rows = xlsx.utils.sheet_to_json(worksheet);
 
-            // Удаляем старые товары этой категории
             await Product.deleteMany({ category: sheetName });
 
             const categoryProducts = [];
@@ -96,7 +95,6 @@ router.post('/', upload.single('file'), async (req, res) => {
                 categoryProducts.push(product);
             }
 
-            // Добавляем новые товары этой категории
             if (categoryProducts.length > 0) {
                 await Product.insertMany(categoryProducts);
                 allProducts.push(...categoryProducts);
@@ -164,7 +162,7 @@ router.get('/export', async (req, res) => {
             xlsx.utils.book_append_sheet(workbook, worksheet, category);
         }
 
-        const exportPath = path.join(__dirname, '..', 'uploads', 'products_export.xlsx'); // <-- путь с именем файла
+        const exportPath = path.join(__dirname, '..', 'uploads', 'products_export.xlsx');
         xlsx.writeFile(workbook, exportPath);
 
         res.download(exportPath, 'products_export.xlsx', err => {
@@ -172,7 +170,6 @@ router.get('/export', async (req, res) => {
                 console.error('Ошибка при отправке файла:', err);
                 res.status(500).json({ error: 'Не удалось отправить файл' });
             } else {
-                // Удалить файл после скачивания
                 fs.unlink(exportPath, () => { });
             }
         });

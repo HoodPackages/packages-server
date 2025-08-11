@@ -85,55 +85,47 @@ router.patch("/:id", async (req, res) => {
 });
 
 router.post("/merge", async (req, res) => {
-  try {
-    const { targetTicketNumber, ticketsToMerge } = req.body;
+    try {
+        const { targetTicketNumber, ticketsToMerge } = req.body;
 
-    if (!targetTicketNumber || !Array.isArray(ticketsToMerge) || ticketsToMerge.length === 0) {
-      return res.status(400).json({ error: "Нужно указать целевой тикет и тикеты для слияния" });
+        if (!targetTicketNumber || !Array.isArray(ticketsToMerge) || ticketsToMerge.length === 0) {
+            return res.status(400).json({ error: "Нужно указать целевой тикет и тикеты для слияния" });
+        }
+        const targetTicket = await Ticket.findOne({ ticketNumber: targetTicketNumber });
+        if (!targetTicket) {
+            return res.status(404).json({ error: "Целевой тикет не найден" });
+        }
+
+        const mergeTickets = await Ticket.find({ _id: { $in: ticketsToMerge } });
+        if (mergeTickets.length === 0) {
+            return res.status(400).json({ error: "Не найдены тикеты для слияния" });
+        }
+
+        const sameUser = mergeTickets.every(t => t.from === targetTicket.from);
+        if (!sameUser) {
+            return res.status(400).json({ error: "Можно объединять только тикеты одного пользователя" });
+        }
+
+        let mergedMessages = [...targetTicket.messages];
+        for (const t of mergeTickets) {
+            mergedMessages.push(...t.messages);
+        }
+
+        mergedMessages.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        targetTicket.messages = mergedMessages;
+        await targetTicket.save();
+
+        await Ticket.updateMany(
+            { _id: { $in: mergeTickets.map(t => t._id) } },
+            { $set: { status: "merged" } }
+        );
+
+        res.json({ success: true, message: "Тикеты объединены", targetTicket });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Ошибка при слиянии тикетов" });
     }
-
-    // Находим целевой тикет по номеру
-    const targetTicket = await Ticket.findOne({ ticketNumber: targetTicketNumber });
-    if (!targetTicket) {
-      return res.status(404).json({ error: "Целевой тикет не найден" });
-    }
-
-    // Находим тикеты для слияния (по _id из чекбоксов)
-    const mergeTickets = await Ticket.find({ _id: { $in: ticketsToMerge } });
-    if (mergeTickets.length === 0) {
-      return res.status(400).json({ error: "Не найдены тикеты для слияния" });
-    }
-
-    // Проверка, что все тикеты принадлежат одному пользователю
-    const sameUser = mergeTickets.every(t => t.from === targetTicket.from);
-    if (!sameUser) {
-      return res.status(400).json({ error: "Можно объединять только тикеты одного пользователя" });
-    }
-
-    // Объединяем сообщения
-    let mergedMessages = [...targetTicket.messages];
-    for (const t of mergeTickets) {
-      mergedMessages.push(...t.messages);
-    }
-
-    // Сортировка сообщений по времени
-    mergedMessages.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // Сохраняем изменения в целевом тикете
-    targetTicket.messages = mergedMessages;
-    await targetTicket.save();
-
-    // Обновляем остальные тикеты — например, меняем статус
-    await Ticket.updateMany(
-      { _id: { $in: mergeTickets.map(t => t._id) } },
-      { $set: { status: "merged" } }
-    );
-
-    res.json({ success: true, message: "Тикеты объединены", targetTicket });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Ошибка при слиянии тикетов" });
-  }
 });
 
 router.post("/contactUs", async (req, res) => {
