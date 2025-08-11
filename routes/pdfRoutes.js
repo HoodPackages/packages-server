@@ -25,9 +25,9 @@ router.post("/generate-invoice", (req, res) => {
 
     const tableTop = doc.y;
     const itemX = 50;
-    const qtyX = 320;
-    const priceX = 380;
-    const sumX = 460;
+    const qtyX = 300;
+    const priceX = 370;
+    const sumX = 435;
     const rowHeight = 25;
     const pageWidth = 595.28;
 
@@ -35,7 +35,7 @@ router.post("/generate-invoice", (req, res) => {
         item: qtyX - itemX - 10,
         qty: priceX - qtyX - 10,
         price: sumX - priceX - 10,
-        sum: pageWidth - 50 - sumX - 10
+        sum: pageWidth - 50 - sumX - 25
     };
 
     let rowHeights = [];
