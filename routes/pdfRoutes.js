@@ -9,6 +9,10 @@ router.post("/generate-invoice", (req, res) => {
     const { contact, delivery, cart, paymentMethod, total } = req.body;
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+    console.log("Font exists?", fs.existsSync(fontPath), fontPath);
+
+
     doc.registerFont('Ledger', fontPath);
     doc.font('Ledger');
 
@@ -52,7 +56,7 @@ router.post("/generate-invoice", (req, res) => {
         totalTableHeight += rowH;
     });
 
-    const tableWidth = pageWidth - 2 * 60; 
+    const tableWidth = pageWidth - 2 * 60;
     doc.lineWidth(1).rect(itemX - 5, tableTop - 5, tableWidth, totalTableHeight + 5).stroke();
 
     [qtyX - 5, priceX - 5, sumX - 5].forEach(x => {
