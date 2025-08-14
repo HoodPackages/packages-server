@@ -2,6 +2,7 @@ const path = require('path');
 const express = require("express");
 const router = express.Router();
 const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 const fontPath = path.join(__dirname, '../fonts/Ledger-Regular.ttf');
 
