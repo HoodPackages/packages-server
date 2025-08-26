@@ -80,7 +80,6 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: false,
     trim: true,
-    required: true
   },
   weight: {
     type: String,
