@@ -111,7 +111,7 @@ const productSchema = new mongoose.Schema({
   },
   density: {
     type: String,
-    required: true
+    required: false
   },
   size: {
     type: String,
