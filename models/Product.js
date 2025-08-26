@@ -27,6 +27,12 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  subcategory: {
+    type: String,
+    required: false,
+    trim: true,
+    default: null
+  },
   currency: {
     type: String,
     required: true,

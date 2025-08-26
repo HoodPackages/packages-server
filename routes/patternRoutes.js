@@ -10,9 +10,15 @@ if (!fs.existsSync(patternsDir)) {
   fs.mkdirSync(patternsDir);
 }
 
+const sanitize = (name) =>
+  name.replace(/[<>:"/\\|?*]+/g, '_');
+
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, patternsDir),
-  filename: (req, file, cb) => cb(null, file.originalname)
+  filename: (req, file, cb) => {
+    const safeName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    cb(null, sanitize(safeName));
+  }
 });
 const upload = multer({ storage });
 
