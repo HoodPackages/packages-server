@@ -73,12 +73,12 @@ async function checkInbox() {
         });
         console.log(`✅ Создан новый тикет #${newTicketNumber} от ${from}`);
       }
-
-      await connection.end();
     } catch (err) {
-      console.error("Ошибка при проверке почты::", err);
+      console.error("Ошибка при обработке письма:", err);
     }
   }
+
+  await connection.end();
 }
 
 module.exports = {
