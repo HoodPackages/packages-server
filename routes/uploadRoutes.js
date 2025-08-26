@@ -149,7 +149,8 @@ router.get('/export', async (req, res) => {
                 'Липкий клапан': product.stickyAss ? 'Да' : '',
                 'Окно': product.window ? 'Да' : '',
                 'Zip-замок': product.zipLock ? 'Да' : '',
-                'Изображения': Array.isArray(product.images) ? product.images.join(', ') : ''
+                'Изображения': Array.isArray(product.images) ? product.images.join(', ') : '',
+                'Подкатегория': product.subcategory || ''
             });
 
             categories[product.category].push(row);
