@@ -55,13 +55,10 @@ router.post('/', upload.single('file'), async (req, res) => {
                     }
                 }
 
-                console.log('RAW:', row['Изображения']);
-                console.log('PARSED:', row['Изображения']?.toString().split(',').map(s => s.trim()));
-
-
                 const product = new Product({
                     name: row['Наименование']?.toString().trim() || 'Без назви',
                     category: sheetName,
+                    subcategory: row['Подкатегория']?.toString().trim() || '',
                     currency: row['Валюта']?.toString().trim() || '',
                     price: priceArray,
                     description: row['Описание']?.toString().trim() || '',
