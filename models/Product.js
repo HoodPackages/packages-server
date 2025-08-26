@@ -78,7 +78,7 @@ const productSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     required: true
   },
@@ -96,7 +96,7 @@ const productSchema = new mongoose.Schema({
   },
   material: {
     type: String,
-    required: true
+    required: false
   },
   bottom: {
     type: Boolean,
