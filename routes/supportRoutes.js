@@ -91,6 +91,7 @@ router.post("/merge", async (req, res) => {
         if (!targetTicketNumber || !Array.isArray(ticketsToMerge) || ticketsToMerge.length === 0) {
             return res.status(400).json({ error: "Нужно указать целевой тикет и тикеты для слияния" });
         }
+
         const targetTicket = await Ticket.findOne({ ticketNumber: targetTicketNumber });
         if (!targetTicket) {
             return res.status(404).json({ error: "Целевой тикет не найден" });
@@ -110,15 +111,15 @@ router.post("/merge", async (req, res) => {
         for (const t of mergeTickets) {
             mergedMessages.push(...t.messages);
         }
-
         mergedMessages.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         targetTicket.messages = mergedMessages;
+        targetTicket.status = "awaiting reply";
         await targetTicket.save();
 
         await Ticket.updateMany(
             { _id: { $in: mergeTickets.map(t => t._id) } },
-            { $set: { status: "merged" } }
+            { $set: { status: "answered" } }
         );
 
         res.json({ success: true, message: "Тикеты объединены", targetTicket });
