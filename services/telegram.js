@@ -25,7 +25,6 @@ ${order.cart.map(i => `• ${i.name} — ${i.quantity} x ${i.price} грн`).joi
 
     await bot.sendMessage(chatId, text);
 
-    // отправляем PDF в группу
     await bot.sendDocument(chatId, pdfBuffer, {}, { filename: "invoice.pdf", contentType: "application/pdf" });
 }
 
