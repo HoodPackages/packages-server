@@ -1,23 +1,31 @@
 const express = require("express");
-const bodyParser = require("body-parser");
-const translate = require("@vitalets/google-translate-api");
 
 const router = express.Router();
-router.use(bodyParser.json());
 
 router.post("/", async (req, res) => {
-  const { text, from, to } = req.body;
-
+  const { text, from = "uk", to } = req.body;
+  console.log("i'm here")
   if (!text || !to) {
     return res.status(400).json({ error: "Invalid payload" });
   }
 
   try {
-    const result = await translate(text, { from: from || "uk", to });
-    res.json({ text: result.text });
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+      text
+    )}&langpair=${from}|${to}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const translated =
+      data?.responseData?.translatedText && data.responseStatus === 200
+        ? data.responseData.translatedText
+        : text;
+
+    res.json({ text: translated });
   } catch (err) {
     console.error("Translate error:", err);
-    res.json({ text }); // fallback — оригинал
+    res.json({ text }); // fallback
   }
 });
 
