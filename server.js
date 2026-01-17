@@ -7,7 +7,6 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const productRoutes = require('./routes/productRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const patternsRoutes = require('./routes/patternRoutes');
-const translateRoute = require("./routes/translate");
 const { checkInbox } = require("./services/mailFetcher");
 
 dotenv.config();
@@ -27,7 +26,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/patterns', patternsRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/pdf', pdfRoutes);
-app.use("/api/translate", translateRoute);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
