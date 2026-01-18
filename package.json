@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@vitalets/google-translate-api": "^9.2.1",
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
@@ -26,6 +27,7 @@
     "fs": "^0.0.1-security",
     "google-translate-api-x": "^10.7.2",
     "imap-simple": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mailparser": "^3.7.4",
     "mongoose": "^8.16.4",
     "multer": "^2.0.2",

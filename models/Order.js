@@ -19,6 +19,7 @@ const orderSchema = new mongoose.Schema({
     ],
     paymentMethod: String,
     total: Number,
+    comment: { type: String, required: false },
     status: { type: String, default: "new" },
     createdAt: { type: Date, default: Date.now }
 });

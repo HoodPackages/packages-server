@@ -5,35 +5,35 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const Order = require("../models/Order");
 const sendOrderToTelegram = require('../services/telegram');
+const multer = require("multer");
 
 const fontPath = path.join(__dirname, '../fonts/Ledger-Regular.ttf');
 
-router.post("/generate-invoice", async (req, res) => {
-    try {
-        const { contact, delivery, cart, paymentMethod, total } = req.body;
+const upload = multer({
+    storage: multer.memoryStorage(),
+});
 
-        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, status: "new" });
+router.post("/generate-invoice", upload.single("layout"), async (req, res) => {
+    try {
+        const contact = JSON.parse(req.body.contact || "{}");
+        const delivery = JSON.parse(req.body.delivery || "{}");
+        const cart = JSON.parse(req.body.cart || "[]");
+
+        const paymentMethod = req.body.paymentMethod;
+        const total = Number(req.body.total);
+        const comment = req.body.comment || "";
+
+        const layoutFile = req.file || null;
+
+        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, comment, status: "new" });
         await newOrder.save();
 
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
-        let chunks = [];
-        doc.on("data", (chunk) => chunks.push(chunk));
-        doc.on("end", async () => {
-            const pdfBuffer = Buffer.concat(chunks);
-
-            await sendOrderToTelegram(newOrder, pdfBuffer);
-
-            res.setHeader("Content-Type", "application/pdf");
-            res.setHeader("Content-Disposition", "attachment; filename=invoice.pdf");
-            res.end(pdfBuffer);
-        });
-
         doc.registerFont('Ledger', fontPath);
         doc.font('Ledger');
 
         doc.fontSize(20).text("Рахунок-фактура", { align: "center" });
         doc.moveDown(2);
-
         doc.fontSize(12);
         doc.text(`Замовник: ${contact.name || "-"}`);
         doc.text(`Телефон: ${contact.phone || "-"}`);
@@ -110,10 +110,22 @@ router.post("/generate-invoice", async (req, res) => {
         doc.fontSize(12).font('Ledger').fillColor('black')
             .text(`${total.toFixed(2)}грн`, sumX, y, { width: colWidths.sum, align: "center" });
 
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", "attachment; filename=invoice.pdf");
+        let chunks = [];
+        doc.on("data", (chunk) => chunks.push(chunk));
+        doc.on("end", async () => {
+            const pdfBuffer = Buffer.concat(chunks);
 
-        doc.pipe(res);
+            await sendOrderToTelegram(newOrder, pdfBuffer, layoutFile ? [layoutFile] : []);
+
+            res
+                .setHeader("Content-Type", "application/pdf")
+                .setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=invoice.pdf"
+                )
+                .end(pdfBuffer);
+        });
+
         doc.end();
     } catch (err) {
         console.error("❌ Помилка при генерації замовлення:", err);
