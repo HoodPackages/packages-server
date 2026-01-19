@@ -9,6 +9,9 @@ const supportRoutes = require('./routes/supportRoutes');
 const patternsRoutes = require('./routes/patternRoutes');
 const { checkInbox } = require("./services/mailFetcher");
 const authRoutes = require('./routes/authRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+
+const path = require("path");
 
 dotenv.config();
 
@@ -25,6 +28,7 @@ app.use((req, res, next) => {
   if (req.is("multipart/form-data")) return next();
   express.json()(req, res, next);
 });
+app.use("/order-layouts", express.static(path.join(__dirname, "order-layouts")));
 
 app.use('/api/products', productRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -32,6 +36,7 @@ app.use('/api/patterns', patternsRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

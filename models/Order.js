@@ -19,8 +19,15 @@ const orderSchema = new mongoose.Schema({
     ],
     paymentMethod: String,
     total: Number,
-    comment: { type: String, required: false },
     status: { type: String, default: "new" },
+    comment: { type: String, required: false },
+    layout: {
+        filename: String,        // имя файла на сервере
+        originalName: String,    // оригинальное имя
+        mimeType: String,        // image/png, image/jpeg, application/pdf
+        size: Number,            // байты
+        path: String             // /uploads/layouts/xxx.png
+    },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -9,10 +9,23 @@ const multer = require("multer");
 
 const fontPath = path.join(__dirname, '../fonts/Ledger-Regular.ttf');
 
-const upload = multer({
-    storage: multer.memoryStorage(),
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, "../order-layouts");
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true }); // создаём папку, если нет
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        // уникальное имя, чтобы не перезаписать файл
+        const ext = path.extname(file.originalname);
+        const name = path.basename(file.originalname, ext);
+        cb(null, `${name}-${Date.now()}${ext}`);
+    }
 });
 
+const upload = multer({ storage });
 router.post("/generate-invoice", upload.single("layout"), async (req, res) => {
     try {
         const contact = JSON.parse(req.body.contact || "{}");
@@ -23,9 +36,16 @@ router.post("/generate-invoice", upload.single("layout"), async (req, res) => {
         const total = Number(req.body.total);
         const comment = req.body.comment || "";
 
-        const layoutFile = req.file || null;
-
-        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, comment, status: "new" });
+        const layoutFile = req.file
+            ? {
+                filename: req.file.filename,
+                originalName: req.file.originalname,
+                mimeType: req.file.mimetype,
+                size: req.file.size,
+                path: `/order-layouts/${req.file.filename}`
+            }
+            : undefined;
+        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, comment, layout: layoutFile, status: "new" });
         await newOrder.save();
 
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
