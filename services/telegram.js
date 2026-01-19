@@ -1,3 +1,4 @@
+const fs = require("fs");
 require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 
@@ -26,13 +27,12 @@ async function sendOrderToTelegram(order, pdfBuffer, files = []) {
 
   await bot.sendMessage(chatId, text);
 
-  // PDF
   await bot.sendDocument(chatId, pdfBuffer, {}, { filename: "invoice.pdf", contentType: "application/pdf" });
 
-  // Файлы-макеты
   for (const f of files) {
-    if (f && f.buffer && f.originalname) {
-      await bot.sendDocument(chatId, f.buffer, {}, { filename: f.originalname, contentType: f.mimetype || "application/octet-stream" });
+    if (f && f.pathOnDisk && f.originalName) {
+      const buffer = fs.readFileSync(f.pathOnDisk);
+      await bot.sendDocument(chatId, buffer, {}, { filename: f.originalName, contentType: f.mimeType || "application/octet-stream" });
     }
   }
 }

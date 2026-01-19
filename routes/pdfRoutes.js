@@ -40,6 +40,7 @@ router.post("/generate-order", upload.single("layout"), async (req, res) => {
                 originalName: req.file.originalname,
                 mimeType: req.file.mimetype,
                 size: req.file.size,
+                pathOnDisk: req.file.path,
                 path: `/order-layouts/${req.file.filename}`
             }
             : undefined;

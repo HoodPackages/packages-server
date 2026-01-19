@@ -26,6 +26,7 @@ const orderSchema = new mongoose.Schema({
         originalName: String,    // оригинальное имя
         mimeType: String,        // image/png, image/jpeg, application/pdf
         size: Number,            // байты
+        pathOnDisk: String,
         path: String             // /uploads/layouts/xxx.png
     },
     createdAt: { type: Date, default: Date.now }
