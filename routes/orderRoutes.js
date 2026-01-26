@@ -3,8 +3,21 @@ const router = express.Router();
 const Order = require("../models/Order");
 const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
 
-const patternsDir = path.join(__dirname, "../patterns");
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, "../uploads/order-layouts");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueName = Date.now() + "-" + file.originalname;
+        cb(null, uniqueName);
+    }
+});
+
+const upload = multer({ storage });
 
 router.get("/", async (req, res) => {
     try {
@@ -86,5 +99,42 @@ router.put("/:id/status", async (req, res) => {
         res.status(500).json({ error: "Ошибка сервера" });
     }
 });
+
+router.put("/:id/edit", upload.single("layout"), async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ error: "Заказ не найден" });
+
+        const { contact, delivery, paymentMethod, comment, language } = req.body;
+
+        if (contact) order.contact = JSON.parse(contact);
+        if (delivery) order.delivery = JSON.parse(delivery);
+        if (paymentMethod) order.paymentMethod = paymentMethod;
+        if (comment !== undefined) order.comment = comment;
+        if (language) order.language = language;
+
+        if (req.file) {
+            if (order.layout?.pathOnDisk && fs.existsSync(path.join(__dirname, "../uploads", order.layout.pathOnDisk))) {
+                fs.unlinkSync(path.join(__dirname, "../uploads", order.layout.pathOnDisk));
+            }
+
+            order.layout = {
+                filename: req.file.filename,
+                originalName: req.file.originalname,
+                mimeType: req.file.mimetype,
+                size: req.file.size,
+                pathOnDisk: `/order-layouts/${req.file.filename}`,
+                path: `/order-layouts/${req.file.filename}`
+            };
+        }
+
+        await order.save();
+        res.json(order);
+    } catch (err) {
+        console.error("❌ Ошибка при редактировании заказа:", err);
+        res.status(500).json({ error: "Ошибка сервера" });
+    }
+});
+
 
 module.exports = router;
