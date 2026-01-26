@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
+const fs = require("fs");
+const path = require("path");
+
+const patternsDir = path.join(__dirname, "../patterns");
 
 router.get("/", async (req, res) => {
     try {
@@ -43,6 +47,15 @@ router.delete("/:id", async (req, res) => {
     try {
         const order = await Order.findByIdAndDelete(req.params.id);
         if (!order) return res.status(404).json({ error: "Замовлення не знайдено" });
+
+        if (order.layout?.pathOnDisk) {
+            if (fs.existsSync(order.layout.pathOnDisk)) {
+                fs.unlinkSync(order.layout.pathOnDisk);
+            } else {
+                console.warn("⚠️ Макет не найден:", order.layout.pathOnDisk);
+            }
+        }
+
         res.json({ success: true });
     } catch (err) {
         console.error(err);

@@ -3,9 +3,22 @@ const path = require('path');
 const XLSX = require('xlsx');
 const Product = require('../models/Product');
 
+let cachedProducts = null;
+let cacheTimestamp = null;
+const CACHE_TTL = 1000 * 60 * 60;
+
 exports.getAllProducts = async (req, res) => {
   try {
+    const now = Date.now();
+
+    if (cachedProducts && cacheTimestamp && now - cacheTimestamp < CACHE_TTL) {
+      return res.json(cachedProducts);
+    }
+
     const products = await Product.find();
+    cachedProducts = products;
+    cacheTimestamp = now;
+
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: 'Ошибка получения данных' });

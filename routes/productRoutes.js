@@ -14,6 +14,4 @@ router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
 router.post('/update-print-prices', updatePrintPrices);
 
-
-
 module.exports = router;
