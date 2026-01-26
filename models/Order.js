@@ -20,6 +20,10 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: String,
     total: Number,
     status: { type: String, default: "new" },
+    language: {
+        type: String,
+        default: "uk"
+    },
     comment: { type: String, required: false },
     layout: {
         filename: String,        // имя файла на сервере

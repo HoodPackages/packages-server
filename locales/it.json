@@ -1,0 +1,13 @@
+{
+  "invoice": "Fattura",
+  "customer": "Cliente",
+  "phone": "Telefono",
+  "email": "Email",
+  "delivery": "Consegna",
+  "payment": "Metodo di pagamento",
+  "product": "Prodotto",
+  "quantity": "Quantità",
+  "price": "Prezzo",
+  "sum": "Importo",
+  "total": "Totale"
+}

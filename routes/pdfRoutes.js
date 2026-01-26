@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const multer = require("multer");
+const getI18n = require("../services/i18n");
 
 const Order = require("../models/Order");
 const sendOrderToTelegram = require('../services/telegram');
@@ -32,6 +33,7 @@ router.post("/generate-order", upload.single("layout"), async (req, res) => {
 
         const paymentMethod = req.body.paymentMethod;
         const total = Number(req.body.total);
+        const language = req.body.language || "en";
         const comment = req.body.comment || "";
 
         const layoutFile = req.file
@@ -44,10 +46,15 @@ router.post("/generate-order", upload.single("layout"), async (req, res) => {
                 path: `/order-layouts/${req.file.filename}`
             }
             : undefined;
-        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, comment, layout: layoutFile, status: "new" });
+        const newOrder = new Order({ contact, delivery, cart, paymentMethod, total, status: "new", language, comment, layout: layoutFile });
         await newOrder.save();
 
-        const doc = generateInvoicePdf(newOrder);
+        const t = getI18n(language);
+
+        const doc = generateInvoicePdf({
+            ...newOrder.toObject(),
+            t
+        });
 
         const chunks = [];
         doc.on("data", (chunk) => chunks.push(chunk));
@@ -68,12 +75,18 @@ router.post("/generate-order", upload.single("layout"), async (req, res) => {
 
 router.get("/:id/invoice", async (req, res) => {
     try {
+        const language = req.query.lang || "en";
         const order = await Order.findById(req.params.id);
         if (!order) {
             return res.status(404).json({ error: "Order not found" });
         }
 
-        const doc = generateInvoicePdf(order);
+        const t = getI18n(language);
+
+        const doc = generateInvoicePdf({
+            ...order.toObject(),
+            t
+        });
 
         const chunks = [];
         doc.on("data", (chunk) => chunks.push(chunk));

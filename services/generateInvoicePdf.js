@@ -8,20 +8,21 @@ module.exports = function generateInvoicePdf({
     delivery,
     cart,
     paymentMethod,
-    total
+    total,
+    t
 }) {
     const doc = new PDFDocument({ margin: 50, size: "A4" });
     doc.registerFont("Ledger", fontPath);
     doc.font("Ledger");
 
-    doc.fontSize(20).text("Рахунок-фактура", { align: "center" });
+    doc.fontSize(20).text(t.invoice, { align: "center" });
     doc.moveDown(2);
     doc.fontSize(12);
-    doc.text(`Замовник: ${contact.name || "-"}`);
-    doc.text(`Телефон: ${contact.phone || "-"}`);
-    doc.text(`Email: ${contact.email || "-"}`);
-    doc.text(`Доставка: ${delivery.method || "-"} — ${delivery.address || "-"}`);
-    doc.text(`Спосіб оплати: ${paymentMethod}`);
+    doc.text(`${t.customer}: ${contact.name || "-"}`);
+    doc.text(`${t.phone}: ${contact.phone || "-"}`);
+    doc.text(`${t.email}: ${contact.email || "-"}`);
+    doc.text(`${t.delivery}: ${delivery.method || "-"} — ${delivery.address || "-"}`);
+    doc.text(`${t.paymentMethod}: ${paymentMethod}`);
     doc.moveDown(2);
 
     const tableTop = doc.y;
@@ -44,10 +45,10 @@ module.exports = function generateInvoicePdf({
 
     cart.forEach(item => {
         const nameHeight = doc.heightOfString(item.name, { width: colWidths.item });
-        const qtyHeight = doc.heightOfString(item.quantity + "шт", { width: colWidths.qty });
-        const priceHeight = doc.heightOfString(item.price.toFixed(2) + "грн", { width: colWidths.price });
+        const qtyHeight = doc.heightOfString(item.quantity, { width: colWidths.qty });
+        const priceHeight = doc.heightOfString(item.price.toFixed(2) + "CHF", { width: colWidths.price });
         const sumHeight = doc.heightOfString(
-            (item.price * item.quantity).toFixed(2) + "грн",
+            (item.price * item.quantity).toFixed(2) + "CHF",
             { width: colWidths.sum }
         );
 
@@ -65,18 +66,18 @@ module.exports = function generateInvoicePdf({
             .stroke();
     });
 
-    doc.text("Товар", itemX, tableTop, { width: colWidths.item, underline: true });
-    doc.text("К-сть", qtyX, tableTop, { width: colWidths.qty, align: "center", underline: true });
-    doc.text("Ціна/шт.", priceX, tableTop, { width: colWidths.price, align: "center", underline: true });
-    doc.text("Сума", sumX, tableTop, { width: colWidths.sum, align: "center", underline: true });
+    doc.text(t.product, itemX, tableTop, { width: colWidths.item, underline: true });
+    doc.text(t.quantity, qtyX, tableTop, { width: colWidths.qty, align: "center", underline: true });
+    doc.text(t.price, priceX, tableTop, { width: colWidths.price, align: "center", underline: true });
+    doc.text(t.sum, sumX, tableTop, { width: colWidths.sum, align: "center", underline: true });
 
     let y = tableTop + rowHeight;
     cart.forEach((item, index) => {
         doc.text(item.name, itemX, y, { width: colWidths.item });
-        doc.text(item.quantity + "шт", qtyX, y, { width: colWidths.qty, align: "center" });
-        doc.text(item.price.toFixed(2) + "грн", priceX, y, { width: colWidths.price, align: "center" });
+        doc.text(item.quantity, qtyX, y, { width: colWidths.qty, align: "center" });
+        doc.text(item.price.toFixed(2), priceX, y, { width: colWidths.price, align: "center" });
         doc.text(
-            (item.price * item.quantity).toFixed(2) + "грн",
+            (item.price * item.quantity).toFixed(2) + "CHF",
             sumX,
             y,
             { width: colWidths.sum, align: "center" }
@@ -92,8 +93,8 @@ module.exports = function generateInvoicePdf({
     });
 
     y += 20;
-    doc.text("Разом:", priceX, y);
-    doc.text(`${total.toFixed(2)}грн`, sumX, y, { align: "center" });
+    doc.text(t.total, priceX, y);
+    doc.text(`${total.toFixed(2)} CHF`, sumX, y, { align: "center" });
 
     return doc;
 };

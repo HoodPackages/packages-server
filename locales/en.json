@@ -1,0 +1,13 @@
+{
+  "invoice": "Invoice",
+  "customer": "Customer",
+  "phone": "Phone",
+  "email": "Email",
+  "delivery": "Delivery",
+  "payment": "Payment method",
+  "product": "Product",
+  "quantity": "Qty",
+  "price": "Price",
+  "sum": "Amount",
+  "total": "Total"
+}
